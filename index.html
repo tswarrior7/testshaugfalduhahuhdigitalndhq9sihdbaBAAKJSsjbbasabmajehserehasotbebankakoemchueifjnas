@@ -263,7 +263,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text-1);min-height
 
 /* ── Mobile ── */
 @media (max-width: 600px) {
-  .shell { padding: 20px 16px env(safe-area-inset-bottom, 24px); }
+  .shell { padding: 20px 16px env(safe-area-inset-bottom, 24px); padding-top: max(40px, env(safe-area-inset-top, 20px)); }
 
   .top-bar { margin-bottom: 20px; }
   .wordmark { font-size: 15px; }
