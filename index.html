@@ -306,9 +306,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text-1);min-height
   .legend-total { font-size: 11px; }
   .legend-label { font-size: 10px; }
 
-  .modal { width: calc(100vw - 32px); padding: 22px 20px; border-radius: 16px; }
+  .modal { width: calc(100vw - 32px); padding: 22px 20px; border-radius: 16px; overflow: hidden; }
   .modal-title { font-size: 15px; }
-  .field input { font-size: 16px; } /* prevents iOS zoom */
+  .field input { font-size: 16px; width: 100%; max-width: 100%; } /* prevents iOS zoom */
 
   .section-right { gap: 6px; }
   .month-ctrl { gap: 3px; }
