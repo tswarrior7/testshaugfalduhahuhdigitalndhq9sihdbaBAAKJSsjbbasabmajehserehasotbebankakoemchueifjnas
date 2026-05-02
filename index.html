@@ -451,7 +451,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text-1);min-height
 
   <!-- Spending vs Investments Chart -->
   <div class="chart-card">
-    <div class="chart-header">
+    <div class="chart-header" onclick="toggleChart()" style="cursor:pointer;">
       <div style="display:flex;align-items:center;gap:10px;">
         <div>
           <div class="chart-title">Spending / Investments</div>
@@ -473,7 +473,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text-1);min-height
             <div class="legend-total invest-total-lbl" id="chartInvestTotal">AED 0</div>
           </div>
         </div>
-        <button class="chart-toggle-btn" id="chartToggleBtn" onclick="toggleChart()">
+        <button class="chart-toggle-btn" id="chartToggleBtn" onclick="toggleChart()" style="display:none;">
           <svg id="chartChevron" style="transition:transform 0.22s;" width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 8 10 13 15 8"/></svg>
         </button>
       </div>
