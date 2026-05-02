@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Digital Bank">
+<meta name="theme-color" content="#1A1916">
+<title>Digital Bank</title>
+<style>
+:root {
+  --bg:#F3F0EA; --surface:#FFFFFF; --surface-2:#F8F6F2;
+  --border:rgba(0,0,0,0.07); --border-strong:rgba(0,0,0,0.12);
+  --text-1:#1A1916; --text-2:#78746C; --text-3:#B4AFA7;
+  --green:#2A6048; --green-light:#6FCFA0; --green-dim:rgba(42,96,72,0.12);
+  --amber:#B8621A; --amber-dim:rgba(184,98,26,0.12);
+  --red:#B03020; --red-dim:rgba(176,48,32,0.1);
+  --blue:#1A4F8A; --blue-dim:rgba(26,79,138,0.1);
+  --r:14px; --r-sm:9px;
+  --font:-apple-system,"SF Pro Display","Helvetica Neue",sans-serif;
+  --shadow:0 2px 12px rgba(0,0,0,0.06),0 1px 3px rgba(0,0,0,0.04);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:var(--font);background:var(--bg);color:var(--text-1);min-height:100vh;-webkit-font-smoothing:antialiased;}
+.shell{max-width:680px;margin:0 auto;padding:40px 28px 80px;}
+
+/* Top bar */
+.top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:32px;}
+.wordmark{font-size:17px;font-weight:600;letter-spacing:-0.02em;}
+.top-right{display:flex;align-items:center;gap:8px;}
+.top-btn{font-size:11px;font-weight:500;color:var(--text-2);background:var(--surface);border:1px solid var(--border-strong);border-radius:100px;padding:5px 12px;cursor:pointer;font-family:var(--font);}
+.top-btn:hover{background:var(--surface-2);}
+.today-chip{font-size:12px;color:var(--text-2);background:var(--surface);border:1px solid var(--border-strong);border-radius:100px;padding:5px 12px;}
+
+/* Balance card */
+.balance-card{background:var(--text-1);border-radius:20px;padding:30px 30px 42px;margin-bottom:16px;position:relative;overflow:hidden;}
+.balance-card::after{content:'';position:absolute;top:-60px;right:-60px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,0.04) 0%,transparent 70%);pointer-events:none;}
+.card-label{font-size:11px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.38);margin-bottom:8px;}
+.balance-row{display:flex;align-items:baseline;gap:6px;margin-bottom:4px;margin-top:18px;}
+.bal-cur{font-size:14px;font-weight:500;color:var(--green-light);letter-spacing:0.02em;}
+.bal-num{font-size:38px;font-weight:350;letter-spacing:-0.04em;color:var(--green-light);line-height:1;cursor:text;}
+.bal-num input{background:transparent;border:none;border-bottom:1.5px solid rgba(111,207,160,0.4);outline:none;font:inherit;color:var(--green-light);width:260px;padding-bottom:2px;}
+.bal-hint{font-size:11px;color:rgba(255,255,255,0.22);margin-bottom:22px;}
+.card-stat{flex:1;}
+.card-stat+.card-stat{border-left:1px solid rgba(255,255,255,0.08);padding-left:24px;}
+.card-stat-label{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:5px;}
+.card-stat-value{font-size:20px;font-weight:350;letter-spacing:-0.02em;color:rgba(255,255,255,0.75);}
+.card-stat-value.red{color:#E07070;}
+
+/* Mini stats */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:28px;}
+.mini-stat{background:var(--surface);border-radius:var(--r);padding:18px 18px;min-height:110px;display:flex;flex-direction:column;justify-content:space-between;border:1px solid var(--border);box-shadow:var(--shadow);transition:background 0.12s;position:relative;isolation:isolate;}
+.mini-stat:hover{background:var(--surface-2);}
+.mini-top{display:flex;justify-content:space-between;align-items:center;}
+.mini-label{font-size:11px;font-weight:500;letter-spacing:0.09em;text-transform:uppercase;color:var(--text-3);}
+.mini-filter-btn{background:none;border:none;cursor:pointer;padding:2px;color:var(--text-3);display:flex;align-items:center;transition:color 0.15s;}
+.mini-filter-btn:hover{color:var(--text-2);}
+.mini-filter-btn.active{color:var(--blue);}
+.mini-dual{display:flex;justify-content:space-between;align-items:flex-end;gap:8px;}
+.mini-value-wrap{flex:1;min-width:0;overflow:hidden;}
+.mini-value-wrap.spend-wrap{text-align:right;padding-right:2px;}
+
+/* Hover chart overlay */
+.mini-hover-chart{
+  position:absolute;
+  top:0;left:0;right:0;bottom:0;
+  border-radius:var(--r);
+  background:var(--surface);
+  padding:14px 16px 12px;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.2s;
+  z-index:10;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+.mini-hover-chart.visible{ opacity:1;pointer-events:none; }
+.mini-top,.mini-dual{ transition:opacity 0.15s; }
+.mini-top.dimmed,.mini-dual.dimmed{ opacity:0; }
+.hc-title{ font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px;}
+.hc-row{ display:flex;align-items:center;gap:5px;margin-bottom:3px;}
+.hc-label{ font-size:10px;color:var(--text-1);width:62px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;}
+.hc-bar-wrap{ flex:1;height:4px;background:var(--surface-2);border-radius:2px;overflow:hidden;}
+.hc-bar{ height:100%;border-radius:2px;}
+.hc-bar.spend{ background:var(--text-1);}
+.hc-bar.invest{ background:#1A8FD1;}
+.hc-val{ font-size:10px;font-weight:500;color:var(--text-2);width:40px;text-align:right;flex-shrink:0;}
+.hc-empty{font-size:11px;color:var(--text-3);text-align:center;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);white-space:nowrap;}
+.mini-value{font-size:20px;font-weight:500;letter-spacing:-0.025em;overflow:hidden;white-space:nowrap;display:block;}
+.mini-value.invest-side{color:#1A8FD1;}
+.mini-value.spend-side{color:var(--text-1);}
+.mini-value .cur{font-size:11px;margin-right:2px;font-weight:500;}
+.mini-filter-row{display:none;flex-direction:column;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);}
+.mini-filter-row.open{display:flex;}
+.filter-inputs{display:flex;gap:5px;align-items:center;}
+.filter-inputs input[type="date"]{flex:1;padding:5px 7px;border:1px solid var(--border-strong);border-radius:6px;font-family:var(--font);font-size:11.5px;color:var(--text-1);background:var(--surface-2);outline:none;min-width:0;}
+.filter-inputs input[type="date"]:focus{border-color:var(--blue);}
+.filter-sep{font-size:11px;color:var(--text-3);flex-shrink:0;}
+.filter-clear{width:22px;height:22px;border-radius:5px;border:1px solid var(--border-strong);background:var(--surface-2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text-2);flex-shrink:0;}
+.filter-clear:hover{background:var(--red-dim);color:var(--red);}
+.active-filter-tag{font-size:11px;color:var(--blue);background:var(--blue-dim);border-radius:4px;padding:2px 6px;}
+
+/* Sections */
+.section{margin-bottom:4px;}
+.section-head{display:flex;justify-content:space-between;align-items:center;margin-top:20px;padding:13px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;user-select:none;box-shadow:var(--shadow);transition:background 0.12s;}
+.section-head:hover{background:var(--surface-2);}
+.section-head.open{border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom-color:transparent;}
+.section-label{display:flex;align-items:center;gap:4px;}
+.chevron{font-size:9px;color:var(--text-3);transition:transform 0.2s;}
+.section-head.open .chevron{transform:rotate(90deg);}
+.section-title{font-size:12px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-2);}
+.badge{font-size:11px;color:rgba(180,175,167,0.6);background:transparent;border:none;padding:2px 4px;min-width:24px;text-align:center;}
+.section-right{display:flex;align-items:center;gap:10px;}
+.section-body{max-height:0;overflow:hidden;transition:max-height 0.3s cubic-bezier(0.4,0,0.2,1);background:var(--surface);border:1px solid var(--border);border-top:none;border-bottom-left-radius:var(--r);border-bottom-right-radius:var(--r);box-shadow:var(--shadow);}
+.section-body.open{max-height:4000px;}
+.section-body-inner{padding:10px 10px 12px;}
+
+/* Month filter */
+.month-ctrl{display:flex;align-items:center;gap:5px;}
+.cal-sec-btn{background:none;border:none;cursor:pointer;padding:2px;color:var(--text-3);display:flex;align-items:center;transition:color 0.15s;}
+.cal-sec-btn:hover{color:var(--text-2);}
+.cal-sec-btn.active{color:var(--blue);}
+.month-pick-wrap{display:flex;align-items:center;gap:4px;}
+.month-pick-wrap input[type="month"],.month-pick-wrap input[type="date"]{padding:4px 7px;border:1px solid var(--border-strong);border-radius:6px;font-family:var(--font);font-size:11.5px;color:var(--text-1);background:var(--surface-2);outline:none;cursor:pointer;}
+.month-tag{font-size:11px;color:var(--blue);background:var(--blue-dim);border-radius:4px;padding:2px 6px;white-space:nowrap;}
+.month-clear{background:none;border:none;cursor:pointer;color:var(--text-3);font-size:12px;padding:1px 3px;display:flex;align-items:center;}
+.month-clear:hover{color:var(--red);}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;border:none;border-radius:100px;padding:0 13px;height:30px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--font);transition:opacity 0.18s,transform 0.1s;}
+.btn:hover{opacity:0.82;}
+.btn:active{transform:scale(0.96);}
+.btn-green{background:var(--text-1);color:#fff;}
+.btn-amber{background:transparent;color:#6B6660;box-shadow:inset 0 0 0 1.5px #6B6660;}
+
+/* Transactions */
+.tx-list{display:flex;flex-direction:column;gap:6px;}
+.tx{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:11px 13px;display:flex;align-items:center;gap:11px;transition:transform 0.14s,box-shadow 0.14s;animation:pop-in 0.18s ease;}
+@keyframes pop-in{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+.tx:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,0.07);}
+.tx-pip{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.pip-green{background:var(--text-1);}
+.pip-amber{background:#6B6660;}
+.pip-invest{background:#7EC4F0;}
+.tx-body{flex:1;min-width:0;}
+.tx-desc{font-size:13px;font-weight:500;color:var(--text-1);white-space:normal;word-break:break-word;}
+.tx-date-lbl{font-size:11px;color:var(--text-3);margin-top:1px;}
+.tx-amt{font-size:14px;font-weight:500;letter-spacing:-0.01em;flex-shrink:0;}
+.amt-green{color:var(--text-1);}
+.amt-amber{color:#6B6660;}
+.tx-btns{display:flex;gap:5px;max-width:0;overflow:hidden;opacity:0;transition:max-width 0.2s ease,opacity 0.15s ease;flex-shrink:0;}
+.tx:hover .tx-btns{max-width:70px;opacity:1;}
+.icon-btn{width:24px;height:24px;border-radius:5px;border:1px solid var(--border-strong);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text-2);font-family:var(--font);}
+.icon-btn.ok{border-color:rgba(42,96,72,0.25);color:var(--green);}
+.icon-btn.ok:hover{background:var(--green-dim);}
+.icon-btn.del{border-color:rgba(176,48,32,0.2);color:var(--red);}
+.icon-btn.del:hover{background:var(--red-dim);}
+.empty{text-align:center;padding:24px 16px;font-size:12.5px;color:var(--text-3);border-radius:var(--r-sm);border:1px dashed var(--border-strong);}
+
+/* Investments */
+.invest-card{border-radius:20px;margin-top:28px;margin-bottom:8px;box-shadow:var(--shadow);border:1px solid var(--border);}
+.invest-header{background:var(--text-1);padding:36px 30px 44px;display:flex;justify-content:space-between;align-items:flex-start;border-radius:20px;transition:border-radius 0.15s;position:relative;overflow:hidden;}
+.invest-header::after{content:'';position:absolute;top:-50px;right:-50px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,0.03) 0%,transparent 70%);pointer-events:none;}
+.invest-header.expanded{border-radius:20px 20px 0 0;}
+.invest-header-left{flex:1;}
+.invest-section-label{font-size:11px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:12px;}
+.invest-header-amounts{display:flex;align-items:baseline;}
+.ihdr-cur{font-size:14px;font-weight:500;color:#7EC4F0;margin-right:5px;}
+.ihdr-total{font-size:38px;font-weight:350;letter-spacing:-0.04em;color:#7EC4F0;margin-right:32px;}
+.ihdr-label{font-size:10px;font-weight:500;letter-spacing:0.04em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-right:5px;}
+.ihdr-sub-cur{font-size:11px;color:rgba(255,255,255,0.35);margin-right:2px;}
+.ihdr-sub-num{font-size:16px;font-weight:350;letter-spacing:-0.015em;margin-right:20px;}
+.ihdr-sub-num:last-child{margin-right:0;}
+.phys-color{color:#CFA830;}
+.dig-color{color:#CFA830;}
+.invest-month-ctrl{display:flex;align-items:center;gap:5px;flex-shrink:0;}
+.invest-cal-btn{background:none;border:none;cursor:pointer;padding:2px;color:rgba(255,255,255,0.3);display:flex;align-items:center;transition:color 0.15s;}
+.invest-cal-btn:hover{color:rgba(255,255,255,0.6);}
+.invest-cal-btn.active{color:#7EC4F0;}
+.invest-month-pick-wrap{display:flex;align-items:center;gap:4px;}
+.invest-month-pick-wrap input[type="month"]{padding:4px 7px;border:1px solid rgba(255,255,255,0.14);border-radius:6px;font-family:var(--font);font-size:11.5px;color:#fff;background:rgba(255,255,255,0.07);outline:none;color-scheme:light;}
+.invest-month-tag{font-size:11px;color:#7EC4F0;background:rgba(126,196,240,0.14);border-radius:4px;padding:2px 7px;white-space:nowrap;}
+.invest-month-clear{background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.28);font-size:12px;padding:1px 3px;display:flex;align-items:center;}
+.invest-month-clear:hover{color:rgba(240,100,80,0.8);}
+.invest-toggle-btn{background:none;border:none;cursor:pointer;padding:2px 2px 2px 8px;color:rgba(255,255,255,0.3);display:flex;align-items:center;transition:color 0.15s;border-left:1px solid rgba(255,255,255,0.08);margin-left:4px;}
+.invest-toggle-btn:hover{color:rgba(255,255,255,0.6);}
+
+.invest-sub-summary{display:flex;align-items:center;gap:0;margin-right:14px;}
+.invest-sub-group{display:flex;align-items:baseline;gap:4px;}
+.ihdr-sub-sep{width:1px;height:12px;background:rgba(255,255,255,0.15);align-self:center;margin:0 16px;}
+
+/* Balance card collapsible stats */
+.balance-card-top{display:flex;justify-content:space-between;align-items:flex-start;}
+.bal-chevron{background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.28);padding:2px;display:flex;align-items:center;transition:color 0.15s;flex-shrink:0;margin-top:4px;}
+.bal-chevron:hover{color:rgba(255,255,255,0.6);}
+
+.bal-summary{display:flex;align-items:flex-end;gap:0;padding-bottom:4px;}
+.bal-sum-item{display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
+.bal-sum-label{font-size:10px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.28);}
+.bal-sum-value{font-size:16px;font-weight:350;letter-spacing:-0.015em;color:rgba(255,255,255,0.75);}
+.bal-sum-value.red{color:#E07070;}
+.bal-sum-sep{width:1px;height:28px;background:rgba(255,255,255,0.1);align-self:center;margin:0 14px;}
+.card-stats-wrap{max-height:0;overflow:hidden;transition:max-height 0.3s cubic-bezier(0.4,0,0.2,1);}
+.card-stats-wrap.open{max-height:120px;}
+.card-stats{display:flex;border-top:1px solid rgba(255,255,255,0.08);padding-top:18px;margin-top:4px;}
+.invest-body-wrap{max-height:0;overflow:hidden;transition:max-height 0.3s cubic-bezier(0.4,0,0.2,1);}
+.invest-body-wrap.open{max-height:4000px;}
+.invest-body{background:var(--surface);display:grid;grid-template-columns:1fr 1fr;border-radius:0 0 20px 20px;}
+.invest-col{padding:18px 20px 20px;min-width:0;overflow:hidden;}
+.invest-col+.invest-col{border-left:1px solid var(--border);}
+.invest-col-title{font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;}
+.invest-col-title.phys{color:#CFA830;}
+.invest-col-title.dig{color:#CFA830;}
+.invest-col-total{font-size:20px;font-weight:350;letter-spacing:-0.02em;color:var(--text-1);margin:8px 0 14px;}
+.invest-col-total .cur{font-size:12px;margin-right:2px;font-weight:500;}
+.invest-col-total.phys,.invest-col-total.phys .cur{color:#CFA830;}
+.invest-col-total.dig,.invest-col-total.dig .cur{color:#CFA830;}
+.invest-list{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;}
+.invest-item{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 12px;display:flex;align-items:center;gap:10px;transition:transform 0.14s,box-shadow 0.14s;animation:pop-in 0.18s ease;}
+.invest-item:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.07);}
+.invest-pip{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.pip-physical{background:#CFA830;}
+.pip-digital{background:#CFA830;}
+.invest-item-body{flex:1;min-width:0;}
+.invest-item-name{font-size:13px;font-weight:500;color:var(--text-1);white-space:normal;word-break:break-word;}
+.invest-item-date{font-size:11px;color:var(--text-3);margin-top:1px;}
+.invest-item-amt{font-size:13px;font-weight:500;color:var(--text-1);flex-shrink:0;}
+.invest-item-del{max-width:0;overflow:hidden;opacity:0;transition:max-width 0.2s ease,opacity 0.15s ease;flex-shrink:0;}
+.invest-item:hover .invest-item-del{max-width:40px;opacity:1;}
+.invest-empty{text-align:center;padding:20px 12px;font-size:12px;color:var(--text-3);border:1px dashed var(--border-strong);border-radius:var(--r-sm);margin-bottom:12px;}
+.invest-add-btn{width:100%;padding:8px;border:1px dashed var(--border-strong);border-radius:var(--r-sm);background:transparent;color:var(--text-3);font-size:12px;font-weight:500;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:4px;}
+.invest-add-btn:hover{background:var(--surface-2);color:var(--text-2);}
+
+/* Modal */
+.overlay{position:fixed;inset:0;background:rgba(20,18,14,0.35);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:200;opacity:0;pointer-events:none;transition:opacity 0.2s;}
+.overlay.open{opacity:1;pointer-events:all;}
+.modal{background:var(--surface);border-radius:20px;padding:28px;width:380px;box-shadow:0 24px 64px rgba(0,0,0,0.18);transform:translateY(12px) scale(0.97);transition:transform 0.22s cubic-bezier(0.34,1.56,0.64,1);}
+.overlay.open .modal{transform:translateY(0) scale(1);}
+.modal-title{font-size:17px;font-weight:600;letter-spacing:-0.01em;margin-bottom:20px;}
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:11px;font-weight:500;letter-spacing:0.09em;text-transform:uppercase;color:var(--text-2);margin-bottom:6px;}
+.field input{width:100%;padding:10px 12px;border:1px solid var(--border-strong);border-radius:var(--r-sm);font-family:var(--font);font-size:14px;color:var(--text-1);background:var(--surface-2);outline:none;transition:border-color 0.18s,box-shadow 0.18s;}
+.field input:focus{border-color:var(--green);box-shadow:0 0 0 3px var(--green-dim);}
+.field input.amber-focus:focus{border-color:#6B6660;box-shadow:0 0 0 3px rgba(107,102,96,0.15);}
+.modal-footer{display:flex;gap:8px;margin-top:20px;}
+.modal-submit{flex:1;padding:11px;border:none;border-radius:var(--r-sm);font-size:14px;font-weight:500;cursor:pointer;font-family:var(--font);}
+.modal-submit:hover{opacity:0.84;}
+.green-submit{background:var(--green);color:#fff;}
+.amber-submit{background:#6B6660;color:#fff;}
+.gold-submit{background:#CFA830;color:#fff;}
+.blue-submit{background:#CFA830;color:#fff;}
+    .ghost-red{flex:1;padding:11px;border:1px solid #B03020;border-radius:var(--r-sm);background:transparent;color:#B03020;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--font);transition:background 0.15s;}
+    .ghost-red:hover{background:var(--red-dim);}
+    .ghost-green{flex:1;padding:11px;border:1px solid var(--green);border-radius:var(--r-sm);background:transparent;color:var(--green);font-size:14px;font-weight:500;cursor:pointer;font-family:var(--font);transition:background 0.15s;}
+    .ghost-green:hover{background:var(--green-dim);}
+.modal-cancel{padding:11px 16px;border:1px solid var(--border-strong);border-radius:var(--r-sm);background:transparent;color:var(--text-2);font-size:14px;font-weight:500;cursor:pointer;font-family:var(--font);}
+.modal-cancel:hover{background:var(--surface-2);}
+
+/* Toast */
+#toast{position:fixed;bottom:24px;right:28px;font-size:11px;font-weight:500;color:var(--green);background:#E8F5EE;border:1px solid rgba(42,96,72,0.2);border-radius:100px;padding:5px 14px;opacity:0;transition:opacity 0.4s;pointer-events:none;z-index:400;}
+
+/* ── Mobile ── */
+@media (max-width: 600px) {
+  .shell { padding: 20px 16px env(safe-area-inset-bottom, 24px); }
+
+  .top-bar { margin-bottom: 20px; }
+  .wordmark { font-size: 15px; }
+  .today-chip { font-size: 11px; padding: 4px 10px; }
+  .top-btn { font-size: 11px; padding: 4px 10px; }
+
+  .balance-card { padding: 22px 20px 34px; border-radius: 16px; }
+  .bal-num { font-size: 32px; }
+  .bal-cur { font-size: 13px; }
+  .bal-summary { gap: 0; }
+  .bal-sum-value { font-size: 14px; }
+  .bal-sum-label { font-size: 9px; }
+  .bal-sum-sep { margin: 0 10px; height: 22px; }
+
+  .stat-grid { grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 20px; }
+  .mini-stat { padding: 14px 12px; min-height: 90px; }
+  .mini-label { font-size: 9px; }
+  .mini-value { font-size: 17px; }
+
+  .section-head { padding: 11px 14px; margin-top: 14px; }
+  .section-title { font-size: 11px; }
+  .btn { padding: 0 10px; height: 27px; font-size: 11px; }
+  .section-body-inner { padding: 8px 8px 10px; }
+  .tx { padding: 10px 11px; }
+  .tx-desc { font-size: 12px; }
+  .tx-amt { font-size: 13px; }
+
+  .invest-header { padding: 24px 20px 32px; border-radius: 16px; }
+  .ihdr-total { font-size: 30px; margin-right: 20px; }
+  .ihdr-cur { font-size: 12px; }
+  .ihdr-label { font-size: 9px; }
+  .ihdr-sub-num { font-size: 13px; margin-right: 12px; }
+  .invest-body { grid-template-columns: 1fr 1fr; }
+  .invest-col { padding: 14px 14px 16px; }
+  .invest-card { border-radius: 16px; margin-top: 20px; }
+
+  .chart-card { padding: 16px 16px 0; border-radius: 16px; }
+  .chart-wrap { height: 140px; }
+  .chart-title { font-size: 11px; }
+  .legend-total { font-size: 11px; }
+  .legend-label { font-size: 10px; }
+
+  .modal { width: calc(100vw - 32px); padding: 22px 20px; border-radius: 16px; }
+  .modal-title { font-size: 15px; }
+  .field input { font-size: 16px; } /* prevents iOS zoom */
+
+  .section-right { gap: 6px; }
+  .month-ctrl { gap: 3px; }
+  .month-pick-wrap input[type="month"],
+  .month-pick-wrap input[type="date"] { font-size: 11px; padding: 3px 6px; }
+}
+.chart-card{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--shadow);padding:22px 22px 0;margin-bottom:4px;transition:background 0.12s;}
+.chart-card:hover{background:var(--surface-2);}
+.chart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:0;padding-bottom:18px;}
+.chart-title{font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-2);}
+.chart-subtitle{font-size:11px;color:var(--text-3);margin-top:3px;}
+.chart-legend{display:flex;align-items:flex-start;gap:16px;}
+.legend-item{display:flex;flex-direction:column;align-items:flex-end;gap:3px;}
+.legend-dot{width:7px;height:7px;border-radius:2px;display:inline-block;}
+.legend-dot.spending{background:#1A1916;}
+.legend-dot.investments{background:#7EC4F0;}
+.legend-label{font-size:11px;color:var(--text-2);}
+.legend-total{font-size:12px;font-weight:500;color:var(--text-1);}
+.legend-total.invest-total-lbl{color:#4AAEE8;}
+.chart-toggle-btn{background:none;border:none;cursor:pointer;color:var(--text-3);display:flex;align-items:center;padding:2px;transition:color 0.15s;margin-left:4px;}
+.chart-toggle-btn:hover{color:var(--text-2);}
+.chart-body-wrap{max-height:0;overflow:hidden;transition:max-height 0.3s cubic-bezier(0.4,0,0.2,1);}
+.chart-body-wrap.open{max-height:280px;}
+.chart-wrap{position:relative;height:180px;padding-bottom:18px;}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="top-bar">
+    <div class="wordmark">Digital Bank</div>
+    <div class="top-right">
+      <button class="top-btn" onclick="importData()">Import</button>
+      <button class="top-btn" onclick="exportData()">Export</button>
+      <div class="today-chip" id="todayChip">—</div>
+    </div>
+  </div>
+
+  <div class="balance-card">
+    <div class="balance-card-top">
+      <div>
+        <div class="card-label">Balance</div>
+        <div class="balance-row">
+          <span class="bal-cur">AED</span>
+          <div class="bal-num" id="balNum" onclick="startEditBalance()">—</div>
+        </div>
+        <button onclick="openBalAdjust()" style="position:absolute;bottom:30px;right:30px;background:none;border:none;cursor:pointer;color:rgba(180,175,167,0.6);font-size:13px;font-weight:600;line-height:1;transition:color 0.15s;font-family:var(--font);">+/−</button>
+        <div id="afterPlannedVal" style="font-size:13px;font-weight:400;color:rgba(255,255,255,0.45);margin-top:12px;letter-spacing:-0.01em;"></div>
+      </div>
+      <div class="bal-summary">
+        <div class="bal-sum-item">
+          <span class="bal-sum-label">Investments</span>
+          <span class="bal-sum-value" id="projVal" style="color:#7EC4F0;">—</span>
+        </div>
+        <div class="bal-sum-sep"></div>
+        <div class="bal-sum-item">
+          <span class="bal-sum-label">Month Spent</span>
+          <span class="bal-sum-value red" id="monthVal">—</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stat-grid">
+    <div class="mini-stat">
+      <div class="mini-top">
+        <span class="mini-label" id="todayLabel">Today</span>
+        <div style="display:flex;align-items:center;gap:4px;">
+          <div class="month-pick-wrap" id="dayPickWrap" style="display:none">
+            <input type="date" id="dayPick" onchange="applyDayFilter()">
+            <button class="month-clear" onclick="clearDayFilter()">✕</button>
+          </div>
+          <span class="month-tag" id="dayTag" style="display:none"></span>
+          <button class="mini-filter-btn" id="todayFilterBtn" onclick="toggleDayFilter()">
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="3" width="17" height="15.5" rx="2.5"/><line x1="6.5" y1="1" x2="6.5" y2="5"/><line x1="13.5" y1="1" x2="13.5" y2="5"/><line x1="1.5" y1="8" x2="18.5" y2="8"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="mini-dual">
+        <div class="mini-value-wrap">
+          <span class="mini-value invest-side"><span id="todayInvestVal">0</span></span>
+        </div>
+        <div class="mini-value-wrap spend-wrap">
+          <span class="mini-value spend-side"><span id="todayVal">0</span></span>
+        </div>
+      </div>
+      <div class="mini-hover-chart" id="todayHoverChart"></div>
+    </div>
+    <div class="mini-stat">
+      <div class="mini-top">
+        <span class="mini-label" id="weekLabel">This Week</span>
+        <div style="display:flex;align-items:center;gap:4px;">
+          <div class="month-pick-wrap" id="rangePickWrap" style="display:none;gap:4px;">
+            <input type="date" id="rangeFrom" onchange="applyRangeFilter()" style="width:90px;">
+            <span class="filter-sep">→</span>
+            <input type="date" id="rangeTo" onchange="applyRangeFilter()" style="width:90px;">
+            <button class="month-clear" onclick="clearRangeFilter()">✕</button>
+          </div>
+          <span class="month-tag" id="rangeTag" style="display:none"></span>
+          <button class="mini-filter-btn" id="weekFilterBtn" onclick="toggleRangeFilter()">
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="3" width="17" height="15.5" rx="2.5"/><line x1="6.5" y1="1" x2="6.5" y2="5"/><line x1="13.5" y1="1" x2="13.5" y2="5"/><line x1="1.5" y1="8" x2="18.5" y2="8"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="mini-dual">
+        <div class="mini-value-wrap">
+          <span class="mini-value invest-side"><span id="weekInvestVal">0</span></span>
+        </div>
+        <div class="mini-value-wrap spend-wrap">
+          <span class="mini-value spend-side"><span id="weekVal">0</span></span>
+        </div>
+      </div>
+      <div class="mini-hover-chart" id="weekHoverChart"></div>
+    </div>
+    <div class="mini-stat">
+      <div class="mini-top">
+        <span class="mini-label" id="monthStatLabel">This Month</span>
+        <div style="display:flex;align-items:center;gap:4px;">
+          <div class="month-pick-wrap" id="monthStatPickWrap" style="display:none">
+            <input type="month" id="monthStatPick" onchange="applyMonthStatFilter(this.value)">
+            <button class="month-clear" onclick="clearMonthStatFilter()">✕</button>
+          </div>
+          <span class="month-tag" id="monthStatTag" style="display:none"></span>
+          <button class="mini-filter-btn" id="monthStatFilterBtn" onclick="toggleMonthStatFilter()">
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="3" width="17" height="15.5" rx="2.5"/><line x1="6.5" y1="1" x2="6.5" y2="5"/><line x1="13.5" y1="1" x2="13.5" y2="5"/><line x1="1.5" y1="8" x2="18.5" y2="8"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="mini-dual">
+        <div class="mini-value-wrap">
+          <span class="mini-value invest-side"><span id="monthInvestVal">0</span></span>
+        </div>
+        <div class="mini-value-wrap spend-wrap">
+          <span class="mini-value spend-side"><span id="monthStatVal">0</span></span>
+        </div>
+      </div>
+      <div class="mini-hover-chart" id="monthHoverChart"></div>
+    </div>
+  </div>
+
+  <!-- Spending vs Investments Chart -->
+  <div class="chart-card">
+    <div class="chart-header">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div>
+          <div class="chart-title">Spending / Investments</div>
+          <div class="chart-subtitle">Last 12 months</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;">
+        <div class="chart-legend">
+          <div class="legend-item">
+            <div style="display:flex;align-items:center;gap:5px;">
+              <span class="legend-dot spending"></span><span class="legend-label">Spending</span>
+            </div>
+            <div class="legend-total" id="chartSpendTotal">AED 0</div>
+          </div>
+          <div class="legend-item">
+            <div style="display:flex;align-items:center;gap:5px;">
+              <span class="legend-dot investments"></span><span class="legend-label">Investments</span>
+            </div>
+            <div class="legend-total invest-total-lbl" id="chartInvestTotal">AED 0</div>
+          </div>
+        </div>
+        <button class="chart-toggle-btn" id="chartToggleBtn" onclick="toggleChart()">
+          <svg id="chartChevron" style="transition:transform 0.22s;" width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 8 10 13 15 8"/></svg>
+        </button>
+      </div>
+    </div>
+    <div id="chartBody" class="chart-body-wrap open">
+      <div class="chart-wrap" style="position:relative;">
+        <canvas id="spendChart"></canvas>
+        <div id="chartTooltip" style="position:absolute;pointer-events:none;opacity:0;transition:opacity 0.18s;font-size:11px;font-weight:600;color:var(--text-1);letter-spacing:-0.01em;transform:translateX(-50%);white-space:nowrap;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head" id="cHead" onclick="toggleSection('c')">
+      <div class="section-label">
+        <span class="chevron">▶</span>
+        <span class="section-title">Spent</span>
+        <span class="badge" id="cBadge">0</span>
+      </div>
+      <div class="section-right" onclick="event.stopPropagation()">
+        <div class="month-ctrl">
+          <button class="cal-sec-btn" id="cCalBtn" onclick="toggleMonthPicker()">
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="3" width="17" height="15.5" rx="2.5"/><line x1="6.5" y1="1" x2="6.5" y2="5"/><line x1="13.5" y1="1" x2="13.5" y2="5"/><line x1="1.5" y1="8" x2="18.5" y2="8"/></svg>
+          </button>
+          <div class="month-pick-wrap" id="monthPickWrap" style="display:none">
+            <input type="month" id="cMonthPick" onchange="applyMonthFilter(this.value)">
+            <button class="month-clear" onclick="clearMonthFilter()">✕</button>
+          </div>
+          <span class="month-tag" id="cMonthTag" style="display:none"></span>
+        </div>
+        <button class="btn btn-green" onclick="openModal('confirmed')">+ Add</button>
+      </div>
+    </div>
+    <div class="section-body" id="cBody">
+      <div class="section-body-inner"><div class="tx-list" id="cList"></div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head" id="pHead" onclick="toggleSection('p')">
+      <div class="section-label">
+        <span class="chevron">▶</span>
+        <span class="section-title">Planned</span>
+        <span class="badge" id="pBadge">0</span>
+      </div>
+      <div class="section-right" onclick="event.stopPropagation()">
+        <button class="btn btn-amber" onclick="openModal('planned')">+ Plan</button>
+      </div>
+    </div>
+    <div class="section-body" id="pBody">
+      <div class="section-body-inner"><div class="tx-list" id="pList"></div></div>
+    </div>
+  </div>
+
+  <div class="invest-card">
+    <div class="invest-header" id="investHeader">
+      <div class="invest-header-left">
+        <div class="invest-section-label">Investments</div>
+        <div class="invest-header-amounts">
+          <span class="ihdr-cur">AED</span><span class="ihdr-total" id="investCombinedTotal">0</span>
+        </div>
+      </div>
+      <div class="invest-month-ctrl">
+        <div class="invest-sub-summary">
+          <div class="invest-sub-group">
+            <span class="ihdr-label phys-color">Physical</span><span class="ihdr-sub-num phys-color" id="physHeaderTotal">0</span>
+          </div>
+          <span class="ihdr-sub-sep"></span>
+          <div class="invest-sub-group">
+            <span class="ihdr-label dig-color">Digital</span><span class="ihdr-sub-num dig-color" id="digHeaderTotal">0</span>
+          </div>
+        </div>
+        <button class="invest-cal-btn" id="investCalBtn" onclick="toggleInvestMonthPicker()">
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="3" width="17" height="15.5" rx="2.5"/><line x1="6.5" y1="1" x2="6.5" y2="5"/><line x1="13.5" y1="1" x2="13.5" y2="5"/><line x1="1.5" y1="8" x2="18.5" y2="8"/></svg>
+        </button>
+        <div class="invest-month-pick-wrap" id="investMonthPickWrap" style="display:none">
+          <input type="month" id="investMonthPick" onchange="applyInvestMonthFilter(this.value)">
+          <button class="invest-month-clear" onclick="clearInvestMonthFilter()">✕</button>
+        </div>
+        <span class="invest-month-tag" id="investMonthTag" style="display:none"></span>
+        <button class="invest-toggle-btn" onclick="toggleInvestBody()">
+          <svg id="investChevron" style="transition:transform 0.22s;" width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 8 10 13 15 8"/></svg>
+        </button>
+      </div>
+    </div>
+    <div id="investBody" class="invest-body-wrap">
+      <div class="invest-body">
+        <div class="invest-col">
+          <div class="invest-col-title phys">Physical</div>
+          <div class="invest-col-total phys"><span class="cur">AED </span><span id="physColTotal">0</span></div>
+          <div class="invest-list" id="physList"></div>
+          <button class="invest-add-btn" onclick="openInvestModal('physical')">
+            <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="1" x2="6" y2="11"/><line x1="1" y1="6" x2="11" y2="6"/></svg>
+            Add Physical
+          </button>
+        </div>
+        <div class="invest-col">
+          <div class="invest-col-title dig">Digital</div>
+          <div class="invest-col-total dig"><span class="cur">AED </span><span id="digColTotal">0</span></div>
+          <div class="invest-list" id="digList"></div>
+          <button class="invest-add-btn" onclick="openInvestModal('digital')">
+            <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="1" x2="6" y2="11"/><line x1="1" y1="6" x2="11" y2="6"/></svg>
+            Add Digital
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="overlay" id="overlay" onclick="if(event.target.id==='overlay')closeModal()">
+  <div class="modal">
+    <div class="modal-title" id="mTitle">Add Transaction</div>
+    <div class="field"><label>Description</label><input type="text" id="mDesc" placeholder="e.g. Carrefour, Noon order…"></div>
+    <div class="field"><label>Amount (AED)</label><input type="number" id="mAmt" placeholder="0" step="1" min="0"></div>
+    <div class="field"><label>Date</label><input type="date" id="mDate"></div>
+    <div id="mInvestField" style="display:none;margin-bottom:14px;">
+      <button type="button" id="mInvestToggle" onclick="toggleInvestFlag()" style="background:none;border:1px solid rgba(126,196,240,0.3);border-radius:7px;padding:8px 14px;font-family:var(--font);font-size:13px;font-weight:500;color:rgba(180,175,167,0.6);cursor:pointer;width:100%;text-align:left;transition:all 0.15s;display:flex;align-items:center;gap:8px;">
+        <span id="mInvestDot" style="width:8px;height:8px;border-radius:50%;border:1.5px solid rgba(126,196,240,0.5);flex-shrink:0;transition:all 0.15s;"></span>
+        <span id="mInvestLabel">Investment</span>
+      </button>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-submit green-submit" id="mSubmit" onclick="submitTx()">Add</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="investOverlay" onclick="if(event.target.id==='investOverlay')closeInvestModal()">
+  <div class="modal">
+    <div class="modal-title" id="iTitle">Add Investment</div>
+    <div class="field"><label>Investment Name</label><input type="text" id="iName" placeholder="e.g. Gold, Bitcoin, Stocks…"></div>
+    <div class="field"><label>Amount (AED)</label><input type="number" id="iAmt" placeholder="0" step="1" min="0"></div>
+    <div class="field"><label>Date</label><input type="date" id="iDate"></div>
+    <div class="modal-footer">
+      <button class="modal-cancel" onclick="closeInvestModal()">Cancel</button>
+      <button class="modal-submit gold-submit" id="iSubmit" onclick="submitInvest()">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- Balance Adjust Modal -->
+<div class="overlay" id="balAdjustOverlay" onclick="if(event.target.id==='balAdjustOverlay')closeBalAdjust()">
+  <div class="modal">
+    <div class="modal-title">Adjust Balance</div>
+    <div class="field"><label>Amount (AED)</label><input type="number" id="balAdjAmt" placeholder="0" step="1" min="0"></div>
+    <div class="modal-footer">
+      <button class="ghost-green" onclick="applyBalAdj('add')">Add</button>
+      <button class="ghost-red" onclick="applyBalAdj('deduct')">Deduct</button>
+      <button class="modal-cancel" onclick="closeBalAdjust()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<input type="file" id="importInput" accept=".json" style="display:none" onchange="onImportFile(event)">
+
+<script>
+let S={balance:null,balanceSetAt:null,txs:[],investments:[]};
+let dayFilter=null,rangeFilter=null,confirmedMonthFilter=null,investMonthFilter=null,investBodyOpen=false,monthStatFilter=null;
+let mType='confirmed',iType='physical',mIsInvestment=false;
+
+function toggleInvestFlag(){
+  mIsInvestment=!mIsInvestment;
+  const dot=document.getElementById('mInvestDot');
+  const lbl=document.getElementById('mInvestLabel');
+  const btn=document.getElementById('mInvestToggle');
+  if(mIsInvestment){
+    dot.style.background='#7EC4F0';dot.style.borderColor='#7EC4F0';
+    lbl.style.color='#7EC4F0';
+    btn.style.borderColor='rgba(126,196,240,0.6)';
+  } else {
+    dot.style.background='';dot.style.borderColor='rgba(126,196,240,0.5)';
+    lbl.style.color='rgba(180,175,167,0.6)';
+    btn.style.borderColor='rgba(126,196,240,0.3)';
+  }
+}
+
+const KEY='digital_bank_v1';
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}};
+const load=()=>{try{const r=localStorage.getItem(KEY);if(r){S=JSON.parse(r);if(!S.investments)S.investments=[];if(!S.txs)S.txs=[];}}catch(e){}};
+
+function exportData(){
+  const b=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='digital-bank-data.json';a.click();URL.revokeObjectURL(a.href);
+  showToast('Exported ✓');
+}
+function importData(){document.getElementById('importInput').click();}
+function onImportFile(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const p=JSON.parse(ev.target.result);
+      if(p&&p.txs!==undefined){S=p;if(!S.investments)S.investments=[];save();render();showToast('Imported ✓');}
+      else showToast('Invalid file');
+    }catch(err){showToast('Could not read file');}
+  };
+  r.readAsText(f);e.target.value='';
+}
+function showToast(msg){const el=document.getElementById('toast');el.textContent=msg;el.style.opacity='1';setTimeout(()=>el.style.opacity='0',2000);}
+
+const fmt=n=>{const x=Number(n);return isNaN(x)?'0':x.toLocaleString('en-AE',{minimumFractionDigits:0,maximumFractionDigits:0});};
+const todayStr=()=>{const d=new Date();const y=d.getFullYear();const m=String(d.getMonth()+1).padStart(2,'0');const day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`;};
+const getMonday=(d=new Date())=>{const x=new Date(d);const day=x.getDay();x.setDate(x.getDate()+(day===0?-6:1-day));x.setHours(0,0,0,0);return x;};
+const fmtDate=s=>new Date(s+'T12:00:00').toLocaleDateString('en-AE',{weekday:'short',month:'short',day:'numeric'});
+const fmtShort=s=>new Date(s+'T12:00:00').toLocaleDateString('en-AE',{day:'numeric',month:'short'});
+const fmtMonth=s=>new Date(s+'-15').toLocaleDateString('en-AE',{month:'long',year:'numeric'});
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
+const sum=a=>a.reduce((s,t)=>s+t.amount,0);
+
+function render(){
+  document.getElementById('todayChip').textContent=new Date().toLocaleDateString('en-AE',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+  const confirmed=S.txs.filter(t=>t.type==='confirmed');
+  const planned=S.txs.filter(t=>t.type==='planned');
+  const cutoff=S.balanceSetAt||0;
+  const spent=confirmed.filter(t=>(t.createdAt||0)>=cutoff).reduce((s,t)=>s+t.amount,0);
+  const bal=S.balance!==null?S.balance-spent:null;
+  const balEl=document.getElementById('balNum');
+  if(!balEl.querySelector('input'))balEl.textContent=bal!==null?fmt(bal):'—';
+  const today=todayStr(),mp=today.slice(0,7);
+  document.getElementById('monthVal').textContent=bal!==null?'AED '+fmt(sum(confirmed.filter(t=>t.date.startsWith(mp)&&!t.isInvestment))):'—';
+  const monthInvest=sum((S.investments||[]).filter(i=>i.date.startsWith(mp)));
+  document.getElementById('projVal').textContent='AED '+fmt(monthInvest);
+  document.getElementById('afterPlannedVal').textContent=bal!==null?'AED '+fmt(bal-sum(planned)):'';
+
+  if(dayFilter){
+    document.getElementById('todayVal').textContent=fmt(sum(confirmed.filter(t=>t.date===dayFilter&&!t.isInvestment)));
+    document.getElementById('todayInvestVal').textContent=fmt(sum(confirmed.filter(t=>t.date===dayFilter&&t.isInvestment)));
+    document.getElementById('todayLabel').textContent=fmtShort(dayFilter);
+    document.getElementById('dayTag').textContent=fmtShort(dayFilter);
+    document.getElementById('dayTag').style.display='inline-block';
+    document.getElementById('todayFilterBtn').classList.add('active');
+  }else{
+    document.getElementById('todayVal').textContent=fmt(sum(confirmed.filter(t=>t.date===today&&!t.isInvestment)));
+    document.getElementById('todayInvestVal').textContent=fmt(sum(confirmed.filter(t=>t.date===today&&t.isInvestment)));
+    document.getElementById('todayLabel').textContent='Today';
+    document.getElementById('dayTag').style.display='none';
+    document.getElementById('todayFilterBtn').classList.remove('active');
+  }
+
+  if(rangeFilter&&rangeFilter.from&&rangeFilter.to){
+    document.getElementById('weekVal').textContent=fmt(sum(confirmed.filter(t=>t.date>=rangeFilter.from&&t.date<=rangeFilter.to&&!t.isInvestment)));
+    document.getElementById('weekInvestVal').textContent=fmt(sum(confirmed.filter(t=>t.date>=rangeFilter.from&&t.date<=rangeFilter.to&&t.isInvestment)));
+    const lbl=fmtShort(rangeFilter.from)+' – '+fmtShort(rangeFilter.to);
+    document.getElementById('weekLabel').textContent=lbl;
+    document.getElementById('rangeTag').textContent=lbl;
+    document.getElementById('rangeTag').style.display='inline-block';
+    document.getElementById('weekFilterBtn').classList.add('active');
+  }else{
+    document.getElementById('weekVal').textContent=fmt(sum(confirmed.filter(t=>new Date(t.date+'T12:00:00')>=getMonday()&&!t.isInvestment)));
+    document.getElementById('weekInvestVal').textContent=fmt(sum(confirmed.filter(t=>new Date(t.date+'T12:00:00')>=getMonday()&&t.isInvestment)));
+    document.getElementById('weekLabel').textContent='This Week';
+    document.getElementById('rangeTag').style.display='none';
+    document.getElementById('weekFilterBtn').classList.remove('active');
+  }
+
+  const am=confirmedMonthFilter||today.slice(0,7);
+  const cf=confirmed.filter(t=>t.date.startsWith(am));
+  // This Month stat
+  const activeMonthStat=monthStatFilter||today.slice(0,7);
+  const monthStatSpent=sum(confirmed.filter(t=>t.date.startsWith(activeMonthStat)&&!t.isInvestment));
+  document.getElementById('monthStatVal').textContent=fmt(monthStatSpent);
+  document.getElementById('monthInvestVal').textContent=fmt(sum(confirmed.filter(t=>t.date.startsWith(activeMonthStat)&&t.isInvestment)));
+  const isMSF=!!monthStatFilter;
+  document.getElementById('monthStatFilterBtn').classList.toggle('active',isMSF);
+  document.getElementById('monthStatLabel').textContent=isMSF?fmtMonth(monthStatFilter):'This Month';
+  document.getElementById('monthStatTag').textContent=isMSF?fmtMonth(monthStatFilter):'';
+  document.getElementById('monthStatTag').style.display=isMSF?'inline-block':'none';
+  if(!isMSF)document.getElementById('monthStatPickWrap').style.display='none';
+
+  document.getElementById('cBadge').textContent='('+cf.length+')';
+  document.getElementById('pBadge').textContent='('+planned.length+')';
+  const isCM=!!confirmedMonthFilter;
+  document.getElementById('cCalBtn').classList.toggle('active',isCM);
+  document.getElementById('cMonthTag').textContent=isCM?fmtMonth(confirmedMonthFilter):'';
+  document.getElementById('cMonthTag').style.display=isCM?'inline-block':'none';
+  if(!isCM)document.getElementById('monthPickWrap').style.display='none';
+  renderList('cList',cf,false);
+  renderList('pList',planned,true);
+  renderInvestments();
+  setTimeout(fitMiniValues,0);
+  setTimeout(renderChart,0);
+  renderHoverCharts();
+}
+
+function renderList(id,items,isPlanned){
+  const el=document.getElementById(id);
+  if(!items.length){el.innerHTML=`<div class="empty">${isPlanned?'No planned purchases yet':'No expenses yet'}</div>`;return;}
+  el.innerHTML=[...items].sort((a,b)=>new Date(b.date)-new Date(a.date)).map(t=>`
+    <div class="tx">
+      <div class="tx-pip ${isPlanned?'pip-amber':t.isInvestment?'pip-invest':'pip-green'}"></div>
+      <div class="tx-body"><div class="tx-desc">${esc(t.description)} <span style="font-size:11px;font-weight:400;color:var(--text-3);margin-left:4px;">${fmtDate(t.date)}</span></div></div>
+      <div class="tx-amt ${isPlanned?'amt-amber':'amt-green'}">AED ${fmt(t.amount)}</div>
+      <div class="tx-btns">
+        ${isPlanned?`<button class="icon-btn ok" onclick="confirmTx('${t.id}')">✓</button>`:''}
+        <button class="icon-btn del" onclick="deleteTx('${t.id}')">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+function renderInvestments(){
+  const am=investMonthFilter||todayStr().slice(0,7);
+  const all=S.investments||[];
+  const filtered=all.filter(i=>i.date.startsWith(am));
+
+  // Header always shows ALL-time totals regardless of filter
+  const allPh=all.filter(i=>i.itype==='physical'),allDi=all.filter(i=>i.itype==='digital');
+  const totalPh=sum(allPh),totalDi=sum(allDi);
+  document.getElementById('investCombinedTotal').textContent=fmt(totalPh+totalDi);
+  document.getElementById('physHeaderTotal').textContent=fmt(totalPh);
+  document.getElementById('digHeaderTotal').textContent=fmt(totalDi);
+
+  // Column totals and lists reflect the active month filter
+  const ph=filtered.filter(i=>i.itype==='physical'),di=filtered.filter(i=>i.itype==='digital');
+  document.getElementById('physColTotal').textContent=fmt(sum(ph));
+  document.getElementById('digColTotal').textContent=fmt(sum(di));
+  const isCM=!!investMonthFilter;
+  document.getElementById('investCalBtn').classList.toggle('active',isCM);
+  document.getElementById('investMonthTag').textContent=isCM?fmtMonth(investMonthFilter):'';
+  document.getElementById('investMonthTag').style.display=isCM?'inline-block':'none';
+  if(!isCM)document.getElementById('investMonthPickWrap').style.display='none';
+  renderInvestList('physList',ph);
+  renderInvestList('digList',di);
+}
+
+function renderInvestList(id,items){
+  const el=document.getElementById(id);
+  if(!items.length){el.innerHTML='<div class="invest-empty">No entries yet</div>';return;}
+  el.innerHTML=[...items].sort((a,b)=>new Date(b.date)-new Date(a.date)).map(i=>`
+    <div class="invest-item">
+      <div class="invest-pip pip-${i.itype}"></div>
+      <div class="invest-item-body"><div class="invest-item-name">${esc(i.name)} <span style="font-size:11px;font-weight:400;color:var(--text-3);margin-left:4px;">${fmtDate(i.date)}</span></div></div>
+      <div class="invest-item-amt">AED ${fmt(i.amount)}</div>
+      <div class="invest-item-del"><button class="icon-btn del" onclick="deleteInvest('${i.id}')">✕</button></div>
+    </div>`).join('');
+}
+
+let balStatsOpen=false;
+function toggleBalStats(){balStatsOpen=!balStatsOpen;document.getElementById('cardStatsWrap').classList.toggle('open',balStatsOpen);document.getElementById('balChevron').style.transform=balStatsOpen?'rotate(180deg)':'rotate(0deg)';}
+
+function toggleSection(p){document.getElementById(p+'Head').classList.toggle('open');document.getElementById(p+'Body').classList.toggle('open');}
+function toggleInvestBody(){investBodyOpen=!investBodyOpen;document.getElementById('investBody').classList.toggle('open',investBodyOpen);document.getElementById('investChevron').style.transform=investBodyOpen?'rotate(180deg)':'rotate(0deg)';document.getElementById('investHeader').classList.toggle('expanded',investBodyOpen);}
+
+
+function toggleDayFilter(){
+  const w=document.getElementById('dayPickWrap'),lbl=document.getElementById('todayLabel');
+  const isOpen=w.style.display!=='none';
+  if(isOpen){w.style.display='none';lbl.style.display='block';}
+  else{w.style.display='flex';lbl.style.display='none';document.getElementById('dayPick').value=dayFilter||todayStr();}
+}
+function applyDayFilter(){const v=document.getElementById('dayPick').value;if(v){dayFilter=v;document.getElementById('dayPickWrap').style.display='none';document.getElementById('todayLabel').style.display='block';render();}}
+function clearDayFilter(){dayFilter=null;document.getElementById('dayPick').value='';document.getElementById('dayPickWrap').style.display='none';document.getElementById('todayLabel').style.display='block';render();}
+
+function toggleRangeFilter(){
+  const w=document.getElementById('rangePickWrap'),lbl=document.getElementById('weekLabel');
+  const isOpen=w.style.display!=='none';
+  if(isOpen){w.style.display='none';lbl.style.display='block';}
+  else{w.style.display='flex';lbl.style.display='none';}
+}
+function applyRangeFilter(){let f=document.getElementById('rangeFrom').value,t=document.getElementById('rangeTo').value;if(!f||!t)return;if(f>t){[f,t]=[t,f];document.getElementById('rangeFrom').value=f;document.getElementById('rangeTo').value=t;}rangeFilter={from:f,to:t};render();}
+function clearRangeFilter(){rangeFilter=null;document.getElementById('rangeFrom').value='';document.getElementById('rangeTo').value='';document.getElementById('rangePickWrap').style.display='none';document.getElementById('weekLabel').style.display='block';render();}
+
+let chartOpen=true;
+function toggleChart(){
+  chartOpen=!chartOpen;
+  document.getElementById('chartBody').classList.toggle('open',chartOpen);
+  document.getElementById('chartChevron').style.transform=chartOpen?'rotate(0deg)':'rotate(-90deg)';
+  if(chartOpen)setTimeout(renderChart,320);
+}
+
+let _chartData=null;
+
+function renderChart(hoveredBar=null){
+  const canvas=document.getElementById('spendChart');
+  if(!canvas)return;
+  const wrap=canvas.parentElement;
+  const W=wrap.offsetWidth, H=180;
+  if(!hoveredBar){
+    canvas.width=W*2; canvas.height=H*2;
+    canvas.style.width=W+'px'; canvas.style.height=H+'px';
+  }
+  const ctx=canvas.getContext('2d');
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.scale(2,2);
+
+  const now=new Date();
+  const months=[];
+  for(let i=11;i>=0;i--){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    const short=d.toLocaleDateString('en-AE',{month:'short'});
+    months.push({key,short});
+  }
+
+  const spending=months.map(m=>sum((S.txs||[]).filter(t=>t.type==='confirmed'&&!t.isInvestment&&t.date.startsWith(m.key))));
+  const investments=months.map(m=>sum((S.investments||[]).filter(i=>i.date.startsWith(m.key))));
+  const maxVal=Math.max(...spending,...investments,1);
+
+  if(!hoveredBar){
+    const totalSpend=spending.reduce((a,b)=>a+b,0);
+    const totalInvest=investments.reduce((a,b)=>a+b,0);
+    document.getElementById('chartSpendTotal').textContent='AED '+fmt(totalSpend);
+    document.getElementById('chartInvestTotal').textContent='AED '+fmt(totalInvest);
+  }
+
+  const padL=10,padR=10,padTop=16,padBot=32;
+  const chartW=W-padL-padR;
+  const chartH=H-padTop-padBot;
+  const groupW=chartW/12;
+  const barW=Math.max(3,groupW*0.28);
+  const gap=2;
+
+  ctx.strokeStyle='rgba(0,0,0,0.05)';
+  ctx.lineWidth=1;
+  for(let g=0;g<=4;g++){
+    const y=padTop+chartH*(1-g/4);
+    ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(W-padR,y);ctx.stroke();
+  }
+
+  canvas._bars=[];
+
+  months.forEach((m,i)=>{
+    const cx=padL+groupW*(i+0.5);
+    const sh=Math.max(2,(spending[i]/maxVal)*chartH);
+    const ih=Math.max(2,(investments[i]/maxVal)*chartH);
+    const sx=cx-barW-gap/2, sy=padTop+chartH-sh;
+    const ix=cx+gap/2,      iy=padTop+chartH-ih;
+
+    const spendId=`s${i}`, investId=`v${i}`;
+    const isHovered=hoveredBar!==null;
+    const spendAlpha = !isHovered||hoveredBar===spendId ? 1 : 0.15;
+    const investAlpha= !isHovered||hoveredBar===investId? 1 : 0.15;
+
+    ctx.globalAlpha=spendAlpha;
+    ctx.fillStyle='#1A1916';
+    roundRect(ctx,sx,sy,barW,sh,2);
+
+    ctx.globalAlpha=investAlpha;
+    ctx.fillStyle='#7EC4F0';
+    roundRect(ctx,ix,iy,barW,ih,2);
+
+    ctx.globalAlpha=1;
+    ctx.fillStyle='rgba(0,0,0,0.3)';
+    ctx.font='500 9px -apple-system,sans-serif';
+    ctx.textAlign='center';
+    ctx.fillText(m.short,cx,H-padBot+14);
+
+    if(spending[i]>0)    canvas._bars.push({id:spendId, x:sx,y:sy,w:barW,h:sh,val:spending[i],  cx:sx+barW/2});
+    if(investments[i]>0) canvas._bars.push({id:investId,x:ix,y:iy,w:barW,h:ih,val:investments[i],cx:ix+barW/2});
+  });
+
+  if(!canvas._hoverAttached){
+    canvas._hoverAttached=true;
+    canvas.addEventListener('mousemove',e=>{
+      const rect=canvas.getBoundingClientRect();
+      const mx=e.clientX-rect.left, my=e.clientY-rect.top;
+      const tip=document.getElementById('chartTooltip');
+      const hit=(canvas._bars||[]).find(b=>mx>=b.x&&mx<=b.x+b.w&&my>=b.y&&my<=b.y+b.h);
+      if(hit){
+        renderChart(hit.id);
+        tip.textContent=fmt(hit.val);
+        tip.style.left=hit.cx+'px';
+        tip.style.top=(hit.y-18)+'px';
+        tip.style.opacity='1';
+      } else {
+        renderChart(null);
+        tip.style.opacity='0';
+      }
+    });
+    canvas.addEventListener('mouseleave',()=>{
+      renderChart(null);
+      document.getElementById('chartTooltip').style.opacity='0';
+    });
+  }
+}
+
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h);
+  ctx.lineTo(x,y+h);
+  ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function renderHoverCharts(){
+  const today=todayStr();
+  const weekStart=getMonday();
+  const activeMonth=monthStatFilter||today.slice(0,7);
+  const confirmed=S.txs.filter(t=>t.type==='confirmed');
+
+  const filters={
+    today: {tx:t=>t.date===today,         inv:i=>i.date===today},
+    week:  {tx:t=>new Date(t.date+'T12:00:00')>=weekStart, inv:i=>new Date(i.date+'T12:00:00')>=weekStart},
+    month: {tx:t=>t.date.startsWith(activeMonth), inv:i=>i.date.startsWith(activeMonth)}
+  };
+
+  [['today','todayHoverChart'],['week','weekHoverChart'],['month','monthHoverChart']].forEach(([key,elId])=>{
+    const f=filters[key];
+    const spendItems=confirmed.filter(t=>f.tx(t)&&!t.isInvestment).map(t=>({name:t.description,amount:t.amount,color:'#1A1916'}));
+    const investItems=(S.investments||[]).filter(i=>f.inv(i)).map(i=>({name:i.name,amount:i.amount,color:'#1A8FD1'}));
+    const all=[...spendItems,...investItems].sort((a,b)=>b.amount-a.amount).slice(0,5);
+    const maxVal=Math.max(...all.map(x=>x.amount),1);
+
+    let html='';
+    all.forEach(item=>{
+      const pct=Math.max(4,Math.round((item.amount/maxVal)*60));
+      html+=`<div style="position:relative;height:18px;margin-bottom:4px;">
+        <div style="position:absolute;left:0;top:50%;transform:translateY(-50%);width:${pct}%;height:4px;background:${item.color};border-radius:2px;"></div>
+        <div style="position:absolute;left:calc(${pct}% + 6px);right:0;top:0;bottom:0;display:flex;align-items:center;font-size:10px;font-weight:500;color:var(--text-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(item.name)}</div>
+      </div>`;
+    });
+    if(!all.length) html=`<div class="hc-empty">No data</div>`;
+
+    document.getElementById(elId).innerHTML=html;
+  });
+}
+
+function fitMiniValues(){
+  document.querySelectorAll('.mini-value').forEach(el=>{
+    el.style.fontSize='20px';
+    let size=20;
+    while(el.scrollWidth>el.parentElement.offsetWidth&&size>10){
+      size-=1;
+      el.style.fontSize=size+'px';
+    }
+  });
+}
+
+function toggleMonthStatFilter(){
+  const w=document.getElementById('monthStatPickWrap');
+  const lbl=document.getElementById('monthStatLabel');
+  const isOpen=w.style.display!=='none';
+  if(isOpen){w.style.display='none';lbl.style.display='block';}
+  else{w.style.display='flex';lbl.style.display='none';document.getElementById('monthStatPick').value=monthStatFilter||todayStr().slice(0,7);}
+}
+function applyMonthStatFilter(v){if(v){monthStatFilter=v;document.getElementById('monthStatPickWrap').style.display='none';document.getElementById('monthStatLabel').style.display='block';render();}}
+function clearMonthStatFilter(){monthStatFilter=null;document.getElementById('monthStatPick').value='';document.getElementById('monthStatPickWrap').style.display='none';document.getElementById('monthStatLabel').style.display='block';render();}
+
+function toggleMonthPicker(){const w=document.getElementById('monthPickWrap');w.style.display=w.style.display==='none'?'flex':'none';if(w.style.display==='flex')document.getElementById('cMonthPick').value=confirmedMonthFilter||todayStr().slice(0,7);}
+function applyMonthFilter(v){if(v){confirmedMonthFilter=v;document.getElementById('monthPickWrap').style.display='none';render();}}
+function clearMonthFilter(){confirmedMonthFilter=null;document.getElementById('cMonthPick').value='';document.getElementById('monthPickWrap').style.display='none';render();}
+
+function toggleInvestMonthPicker(){const w=document.getElementById('investMonthPickWrap');w.style.display=w.style.display==='none'?'flex':'none';if(w.style.display==='flex')document.getElementById('investMonthPick').value=investMonthFilter||todayStr().slice(0,7);}
+function applyInvestMonthFilter(v){if(v){investMonthFilter=v;document.getElementById('investMonthPickWrap').style.display='none';renderInvestments();}}
+function clearInvestMonthFilter(){investMonthFilter=null;document.getElementById('investMonthPick').value='';document.getElementById('investMonthPickWrap').style.display='none';renderInvestments();}
+
+function openBalAdjust(){
+  document.getElementById('balAdjAmt').value='';
+  document.getElementById('balAdjustOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('balAdjAmt').focus(),80);
+}
+function closeBalAdjust(){document.getElementById('balAdjustOverlay').classList.remove('open');}
+function applyBalAdj(type){
+  const amt=parseFloat(document.getElementById('balAdjAmt').value);
+  if(isNaN(amt)||amt<=0){
+    const el=document.getElementById('balAdjAmt');
+    el.style.borderColor='var(--red)';setTimeout(()=>el.style.borderColor='',1200);return;
+  }
+  // Use currentBalance as base
+  const cutoff=S.balanceSetAt||0;
+  const spent=S.txs.filter(t=>t.type==='confirmed'&&(t.createdAt||0)>=cutoff).reduce((s,t)=>s+t.amount,0);
+  const cur=S.balance!==null?S.balance-spent:0;
+  S.balance=type==='add'?cur+amt:cur-amt;
+  S.balanceSetAt=Date.now();
+  save();closeBalAdjust();render();
+}
+
+function startEditBalance(){
+  const el=document.getElementById('balNum');if(el.querySelector('input'))return;
+  el.innerHTML=`<input type="number" value="${S.balance??''}" placeholder="Enter amount" step="1" onblur="commitBalance(this.value)" onkeydown="if(event.key==='Enter')this.blur();if(event.key==='Escape')cancelBalance();">`;
+  el.querySelector('input').select();
+}
+function commitBalance(v){const n=parseFloat(v);if(!isNaN(n)&&n>=0){S.balance=n;S.balanceSetAt=Date.now();}document.getElementById('balNum').innerHTML='';save();render();}
+function cancelBalance(){document.getElementById('balNum').innerHTML='';render();}
+
+function openModal(type){
+  mType=type;const p=type==='planned';
+  document.getElementById('mTitle').textContent=p?'Plan a Purchase':'Add Expense';
+  document.getElementById('mSubmit').textContent=p?'Save Plan':'Add';
+  document.getElementById('mSubmit').className=`modal-submit ${p?'amber-submit':'green-submit'}`;
+  ['mDesc','mAmt','mDate'].forEach(id=>{const el=document.getElementById(id);p?el.classList.add('amber-focus'):el.classList.remove('amber-focus');});
+  mIsInvestment=false;
+  document.getElementById('mInvestField').style.display=p?'none':'block';
+  document.getElementById('mInvestDot').style.background='';
+  document.getElementById('mInvestDot').style.borderColor='rgba(126,196,240,0.5)';
+  document.getElementById('mInvestLabel').style.color='rgba(180,175,167,0.6)';
+  document.getElementById('mInvestToggle').style.borderColor='rgba(126,196,240,0.3)';
+  document.getElementById('mDesc').value='';document.getElementById('mAmt').value='';document.getElementById('mDate').value=todayStr();
+  document.getElementById('overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('mDesc').focus(),80);
+}
+function closeModal(){document.getElementById('overlay').classList.remove('open');}
+function submitTx(){
+  const desc=document.getElementById('mDesc').value.trim(),amount=parseFloat(document.getElementById('mAmt').value),date=document.getElementById('mDate').value;
+  if(!desc||isNaN(amount)||amount<=0||!date){['mDesc','mAmt','mDate'].forEach(id=>{const el=document.getElementById(id);const bad=id==='mAmt'?(isNaN(amount)||amount<=0):!el.value.trim();if(bad){el.style.borderColor='var(--red)';setTimeout(()=>el.style.borderColor='',1200);}});return;}
+  S.txs.push({id:uid(),description:desc,amount,date,type:mType,isInvestment:mIsInvestment,createdAt:Date.now()});
+  save();closeModal();render();
+}
+function confirmTx(id){const t=S.txs.find(x=>x.id===id);if(t){t.type='confirmed';t.date=todayStr();t.createdAt=Date.now();}save();render();}
+function deleteTx(id){S.txs=S.txs.filter(x=>x.id!==id);save();render();}
+
+function openInvestModal(type){
+  iType=type;const p=type==='physical';
+  document.getElementById('iTitle').textContent=p?'Add Physical Investment':'Add Digital Investment';
+  document.getElementById('iSubmit').className=`modal-submit ${p?'gold-submit':'blue-submit'}`;
+  document.getElementById('iName').value='';document.getElementById('iAmt').value='';document.getElementById('iDate').value=todayStr();
+  document.getElementById('investOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('iName').focus(),80);
+}
+function closeInvestModal(){document.getElementById('investOverlay').classList.remove('open');}
+function submitInvest(){
+  const name=document.getElementById('iName').value.trim(),amount=parseFloat(document.getElementById('iAmt').value),date=document.getElementById('iDate').value;
+  if(!name||isNaN(amount)||amount<=0||!date){['iName','iAmt','iDate'].forEach(id=>{const el=document.getElementById(id);const bad=id==='iAmt'?(isNaN(amount)||amount<=0):!el.value.trim();if(bad){el.style.borderColor='var(--red)';setTimeout(()=>el.style.borderColor='',1200);}});return;}
+  S.investments.push({id:uid(),name,amount,date,itype:iType,createdAt:Date.now()});
+  save();closeInvestModal();renderInvestments();
+}
+function deleteInvest(id){S.investments=S.investments.filter(i=>i.id!==id);save();renderInvestments();}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    if(document.getElementById('investOverlay').classList.contains('open'))closeInvestModal();
+    else if(document.getElementById('overlay').classList.contains('open'))closeModal();
+    else if(document.getElementById('balAdjustOverlay').classList.contains('open'))closeBalAdjust();
+    else cancelBalance();
+  }
+  if(e.key==='Enter'&&document.getElementById('overlay').classList.contains('open')&&document.activeElement.id==='mDate')submitTx();
+  if(e.key==='Enter'&&document.getElementById('investOverlay').classList.contains('open')&&document.activeElement.id==='iDate')submitInvest();
+});
+
+function initHoverCharts(){
+  [['todayHoverChart'],['weekHoverChart'],['monthHoverChart']].forEach(([chartId])=>{
+    const card=document.getElementById(chartId).closest('.mini-stat');
+    const chart=document.getElementById(chartId);
+
+    card.addEventListener('mousemove',e=>{
+      const rect=card.getBoundingClientRect();
+      const relY=(e.clientY-rect.top)/rect.height;
+      if(relY>0.35){
+        chart.classList.add('visible');
+        card.querySelectorAll('.mini-top,.mini-dual').forEach(el=>el.classList.add('dimmed'));
+      } else {
+        chart.classList.remove('visible');
+        card.querySelectorAll('.mini-top,.mini-dual').forEach(el=>el.classList.remove('dimmed'));
+      }
+    });
+    card.addEventListener('mouseleave',()=>{
+      chart.classList.remove('visible');
+      card.querySelectorAll('.mini-top,.mini-dual').forEach(el=>el.classList.remove('dimmed'));
+    });
+  });
+}
+
+window.addEventListener('resize',()=>setTimeout(renderChart,50));
+initHoverCharts();
+load();
+render();
+</script>
+</body>
+</html>
