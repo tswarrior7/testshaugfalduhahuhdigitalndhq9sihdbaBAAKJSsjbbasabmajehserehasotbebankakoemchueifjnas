@@ -151,12 +151,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text-1);min-height
 .amt-green{color:var(--text-1);}
 .amt-amber{color:#6B6660;}
 .tx-btns{display:flex;gap:5px;max-width:0;overflow:hidden;opacity:0;transition:max-width 0.2s ease,opacity 0.15s ease;flex-shrink:0;}
-.tx:hover .tx-btns,.tx.tapped .tx-btns{max-width:70px;opacity:1;}
+.tx:hover .tx-btns,.tx.tapped .tx-btns{max-width:100px;opacity:1;}
 .icon-btn{width:24px;height:24px;border-radius:5px;border:1px solid var(--border-strong);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text-2);font-family:var(--font);}
 .icon-btn.ok{border-color:rgba(42,96,72,0.25);color:var(--green);}
 .icon-btn.ok:hover{background:var(--green-dim);}
 .icon-btn.del{border-color:rgba(176,48,32,0.2);color:var(--red);}
 .icon-btn.del:hover{background:var(--red-dim);}
+.icon-btn.edit{border-color:rgba(0,0,0,0.1);color:var(--text-2);}
+.icon-btn.edit:hover{background:var(--surface-2);}
 .empty{text-align:center;padding:24px 16px;font-size:12.5px;color:var(--text-3);border-radius:var(--r-sm);border:1px dashed var(--border-strong);}
 
 /* Investments */
@@ -228,7 +230,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text-1);min-height
 .invest-item-date{font-size:11px;color:var(--text-3);margin-top:1px;}
 .invest-item-amt{font-size:13px;font-weight:500;color:var(--text-1);flex-shrink:0;}
 .invest-item-del{max-width:0;overflow:hidden;opacity:0;transition:max-width 0.2s ease,opacity 0.15s ease;flex-shrink:0;}
-.invest-item:hover .invest-item-del,.invest-item.tapped .invest-item-del{max-width:40px;opacity:1;}
+.invest-item:hover .invest-item-del,.invest-item.tapped .invest-item-del{max-width:70px;opacity:1;}
 .invest-empty{text-align:center;padding:20px 12px;font-size:12px;color:var(--text-3);border:1px dashed var(--border-strong);border-radius:var(--r-sm);margin-bottom:12px;}
 .invest-add-btn{width:100%;padding:8px;border:1px dashed var(--border-strong);border-radius:var(--r-sm);background:transparent;color:var(--text-3);font-size:12px;font-weight:500;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:4px;}
 .invest-add-btn:hover{background:var(--surface-2);color:var(--text-2);}
@@ -320,14 +322,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text-1);min-height
 .chart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:0;padding-bottom:18px;}
 .chart-title{font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-2);}
 .chart-subtitle{font-size:11px;color:var(--text-3);margin-top:3px;}
-.chart-legend{display:flex;align-items:flex-start;gap:16px;}
+.chart-legend{display:flex;align-items:flex-start;gap:16px;flex-shrink:0;}
 .legend-item{display:flex;flex-direction:column;align-items:flex-end;gap:3px;}
 .legend-dot{width:7px;height:7px;border-radius:2px;display:inline-block;}
 .legend-dot.spending{background:#1A1916;}
 .legend-dot.investments{background:#7EC4F0;}
 .legend-label{font-size:11px;color:var(--text-2);}
-.legend-total{font-size:12px;font-weight:500;color:var(--text-1);}
-.legend-total.invest-total-lbl{color:#4AAEE8;}
+.legend-total{font-size:12px;font-weight:500;color:var(--text-1);white-space:nowrap;}
+.legend-total.invest-total-lbl{color:#4AAEE8;white-space:nowrap;}
 .chart-toggle-btn{background:none;border:none;cursor:pointer;color:var(--text-3);display:flex;align-items:center;padding:2px;transition:color 0.15s;margin-left:4px;}
 .chart-toggle-btn:hover{color:var(--text-2);}
 .chart-body-wrap{max-height:0;overflow:hidden;transition:max-height 0.3s cubic-bezier(0.4,0,0.2,1);}
@@ -546,18 +548,19 @@ body{font-family:var(--font);background:var(--bg);color:var(--text-1);min-height
             <span class="ihdr-label dig-color">Digital</span><span class="ihdr-sub-num dig-color" id="digHeaderTotal">0</span>
           </div>
         </div>
-        <button class="invest-cal-btn" id="investCalBtn" onclick="toggleInvestMonthPicker()">
-          <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="3" width="17" height="15.5" rx="2.5"/><line x1="6.5" y1="1" x2="6.5" y2="5"/><line x1="13.5" y1="1" x2="13.5" y2="5"/><line x1="1.5" y1="8" x2="18.5" y2="8"/></svg>
-        </button>
-        <div class="invest-month-pick-wrap" id="investMonthPickWrap" style="display:none">
-          <input type="month" id="investMonthPick" onchange="applyInvestMonthFilter(this.value)">
-          <button class="invest-month-clear" onclick="clearInvestMonthFilter()">✕</button>
-        </div>
-        <span class="invest-month-tag" id="investMonthTag" style="display:none"></span>
         <button class="invest-toggle-btn" onclick="toggleInvestBody()">
           <svg id="investChevron" style="transition:transform 0.22s;" width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 8 10 13 15 8"/></svg>
         </button>
       </div>
+      <!-- Calendar icon bottom right -->
+      <button onclick="toggleInvestMonthPicker()" style="position:absolute;bottom:18px;right:30px;background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.3);display:flex;align-items:center;transition:color 0.15s;" id="investCalBtn">
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="3" width="17" height="15.5" rx="2.5"/><line x1="6.5" y1="1" x2="6.5" y2="5"/><line x1="13.5" y1="1" x2="13.5" y2="5"/><line x1="1.5" y1="8" x2="18.5" y2="8"/></svg>
+      </button>
+      <div class="invest-month-pick-wrap" id="investMonthPickWrap" style="display:none;position:absolute;bottom:14px;right:52px;">
+        <input type="month" id="investMonthPick" onchange="applyInvestMonthFilter(this.value)">
+        <button class="invest-month-clear" onclick="clearInvestMonthFilter()">✕</button>
+      </div>
+      <span class="invest-month-tag" id="investMonthTag" style="display:none;position:absolute;bottom:18px;right:52px;"></span>
     </div>
     <div id="investBody" class="invest-body-wrap">
       <div class="invest-body">
@@ -626,6 +629,20 @@ body{font-family:var(--font);background:var(--bg);color:var(--text-1);min-height
       <button class="ghost-green" onclick="applyBalAdj('add')">Add</button>
       <button class="ghost-red" onclick="applyBalAdj('deduct')">Deduct</button>
       <button class="modal-cancel" onclick="closeBalAdjust()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Transaction Modal -->
+<div class="overlay" id="editOverlay" onclick="if(event.target.id==='editOverlay')closeEditModal()">
+  <div class="modal">
+    <div class="modal-title">Edit</div>
+    <div class="field"><label>Description</label><input type="text" id="editDesc" placeholder="Description"></div>
+    <div class="field"><label>Amount (AED)</label><input type="number" id="editAmt" placeholder="0" step="1" min="0"></div>
+    <div class="field"><label>Date</label><input type="date" id="editDate"></div>
+    <div class="modal-footer">
+      <button class="modal-cancel" onclick="closeEditModal()">Cancel</button>
+      <button class="modal-submit green-submit" onclick="submitEdit()">Save</button>
     </div>
   </div>
 </div>
@@ -773,6 +790,7 @@ function renderList(id,items,isPlanned){
       <div class="tx-amt ${isPlanned?'amt-amber':'amt-green'}">AED ${fmt(t.amount)}</div>
       <div class="tx-btns">
         ${isPlanned?`<button class="icon-btn ok" onclick="confirmTx('${t.id}')">✓</button>`:''}
+        <button class="icon-btn edit" onclick="openEditModal('tx','${t.id}')"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 2l3 3-9 9H2v-3z"/></svg></button>
         <button class="icon-btn del" onclick="deleteTx('${t.id}')">✕</button>
       </div>
     </div>`).join('');
@@ -811,7 +829,10 @@ function renderInvestList(id,items){
       <div class="invest-pip pip-${i.itype}"></div>
       <div class="invest-item-body"><div class="invest-item-name">${esc(i.name)} <span style="font-size:11px;font-weight:400;color:var(--text-3);margin-left:4px;">${fmtDate(i.date)}</span></div></div>
       <div class="invest-item-amt">AED ${fmt(i.amount)}</div>
-      <div class="invest-item-del"><button class="icon-btn del" onclick="deleteInvest('${i.id}')">✕</button></div>
+      <div class="invest-item-del" style="display:flex;gap:5px;">
+        <button class="icon-btn edit" onclick="openEditModal('invest','${i.id}')"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 2l3 3-9 9H2v-3z"/></svg></button>
+        <button class="icon-btn del" onclick="deleteInvest('${i.id}')">✕</button>
+      </div>
     </div>`).join('');
 }
 
@@ -1085,6 +1106,44 @@ function submitTx(){
 function confirmTx(id){const t=S.txs.find(x=>x.id===id);if(t){t.type='confirmed';t.date=todayStr();t.createdAt=Date.now();}save();render();}
 function deleteTx(id){S.txs=S.txs.filter(x=>x.id!==id);save();render();}
 
+// ─── Edit modal ───────────────────────────────────────────────
+let editType=null, editId=null;
+
+function openEditModal(type, id){
+  editType=type; editId=id;
+  let item;
+  if(type==='tx') item=S.txs.find(x=>x.id===id);
+  else item=(S.investments||[]).find(x=>x.id===id);
+  if(!item) return;
+  document.getElementById('editDesc').value = type==='tx' ? item.description : item.name;
+  document.getElementById('editAmt').value  = item.amount;
+  document.getElementById('editDate').value = item.date;
+  document.getElementById('editOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('editDesc').focus(),80);
+}
+function closeEditModal(){ document.getElementById('editOverlay').classList.remove('open'); }
+function submitEdit(){
+  const desc = document.getElementById('editDesc').value.trim();
+  const amount = parseFloat(document.getElementById('editAmt').value);
+  const date = document.getElementById('editDate').value;
+  if(!desc||isNaN(amount)||amount<=0||!date){
+    ['editDesc','editAmt','editDate'].forEach(id=>{
+      const el=document.getElementById(id);
+      const bad=id==='editAmt'?(isNaN(amount)||amount<=0):!el.value.trim();
+      if(bad){el.style.borderColor='var(--red)';setTimeout(()=>el.style.borderColor='',1200);}
+    });
+    return;
+  }
+  if(editType==='tx'){
+    const t=S.txs.find(x=>x.id===editId);
+    if(t){t.description=desc;t.amount=amount;t.date=date;}
+  } else {
+    const i=(S.investments||[]).find(x=>x.id===editId);
+    if(i){i.name=desc;i.amount=amount;i.date=date;}
+  }
+  save(); closeEditModal(); render();
+}
+
 function openInvestModal(type){
   iType=type;const p=type==='physical';
   document.getElementById('iTitle').textContent=p?'Add Physical Investment':'Add Digital Investment';
@@ -1104,7 +1163,8 @@ function deleteInvest(id){S.investments=S.investments.filter(i=>i.id!==id);save(
 
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){
-    if(document.getElementById('investOverlay').classList.contains('open'))closeInvestModal();
+    if(document.getElementById('editOverlay').classList.contains('open')) closeEditModal();
+    else if(document.getElementById('investOverlay').classList.contains('open'))closeInvestModal();
     else if(document.getElementById('overlay').classList.contains('open'))closeModal();
     else if(document.getElementById('balAdjustOverlay').classList.contains('open'))closeBalAdjust();
     else cancelBalance();
