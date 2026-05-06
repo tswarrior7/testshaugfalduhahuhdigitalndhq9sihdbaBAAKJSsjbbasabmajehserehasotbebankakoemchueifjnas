@@ -1202,41 +1202,29 @@ function initHoverCharts(){
   });
 }
 
+
 function initTouchHandlers(){
-  // Make entire invest header tappable on mobile
+  // Make entire invest header tappable
   document.getElementById('investHeader').addEventListener('click', function(e){
-    // Don't trigger if clicking a button inside
     if(e.target.closest('button')||e.target.closest('input')) return;
     toggleInvestBody();
   });
 
-  // Touch tap for tx items — delegate on stable section bodies
-  ['cBody','pBody'].forEach(bodyId=>{
-    const el=document.getElementById(bodyId);
-    if(!el) return;
-    el.addEventListener('click', function(e){
-      const tx=e.target.closest('.tx');
-      if(!tx||e.target.closest('button')) return;
-      const wasOpen=tx.classList.contains('tapped');
-      document.querySelectorAll('.tx.tapped').forEach(t=>t.classList.remove('tapped'));
-      if(!wasOpen) tx.classList.add('tapped');
-    });
-  });
+  // Document-level click handler for item tap-to-toggle
+  document.addEventListener('click', function(e){
+    if(e.target.closest('button')) return;
+    if(e.target.closest('input')) return;
 
-  // Touch tap for invest items — delegate on invest body
-  document.getElementById('investBody').addEventListener('click', function(e){
-    const item=e.target.closest('.invest-item');
-    if(!item||e.target.closest('button')) return;
-    const wasOpen=item.classList.contains('tapped');
-    document.querySelectorAll('.invest-item.tapped').forEach(t=>t.classList.remove('tapped'));
-    if(!wasOpen) item.classList.add('tapped');
-  });
-
-  // Close tapped items when sections collapse
-  document.querySelectorAll('.section-head').forEach(h=>{
-    h.addEventListener('click',()=>{
-      document.querySelectorAll('.tx.tapped,.invest-item.tapped').forEach(t=>t.classList.remove('tapped'));
-    });
+    const item = e.target.closest('.tx, .invest-item');
+    if(item){
+      const wasTapped = item.classList.contains('tapped');
+      document.querySelectorAll('.tx.tapped, .invest-item.tapped').forEach(t=>{
+        if(t!==item) t.classList.remove('tapped');
+      });
+      item.classList.toggle('tapped', !wasTapped);
+    } else {
+      document.querySelectorAll('.tx.tapped, .invest-item.tapped').forEach(t=>t.classList.remove('tapped'));
+    }
   });
 }
 
