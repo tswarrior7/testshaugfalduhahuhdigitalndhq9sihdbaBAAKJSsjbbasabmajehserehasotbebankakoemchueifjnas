@@ -563,7 +563,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text-1);min-height
         <input type="month" id="investMonthPick" onchange="applyInvestMonthFilter(this.value)">
         <button class="invest-month-clear" onclick="clearInvestMonthFilter()">✕</button>
       </div>
-      <span class="invest-month-tag" id="investMonthTag" style="display:none;position:absolute;bottom:18px;right:52px;"></span>
+      <span class="invest-month-tag" id="investMonthTag" style="display:none;position:absolute;bottom:18px;right:52px;align-items:center;gap:6px;">
+        <span id="investMonthTagText"></span>
+        <button onclick="clearInvestMonthFilter();event.stopPropagation();" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.45);font-size:12px;padding:0;line-height:1;">✕</button>
+      </span>
     </div>
     <div id="investBody" class="invest-body-wrap">
       <div class="invest-body">
@@ -817,8 +820,8 @@ function renderInvestments(){
   document.getElementById('digColTotal').textContent=fmt(sum(di));
   const isCM=!!investMonthFilter;
   document.getElementById('investCalBtn').classList.toggle('active',isCM);
-  document.getElementById('investMonthTag').textContent=isCM?fmtMonth(investMonthFilter):'';
-  document.getElementById('investMonthTag').style.display=isCM?'inline-block':'none';
+  document.getElementById('investMonthTagText').textContent=isCM?fmtMonth(investMonthFilter):'';
+  document.getElementById('investMonthTag').style.display=isCM?'inline-flex':'none';
   if(!isCM)document.getElementById('investMonthPickWrap').style.display='none';
   renderInvestList('physList',ph);
   renderInvestList('digList',di);
